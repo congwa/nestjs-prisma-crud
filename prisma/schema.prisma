@@ -1,0 +1,112 @@
+generator client {
+  provider = "prisma-client-js"
+}
+
+datasource db {
+  provider = "postgresql"
+  url      = env("DATABASE_URL")
+}
+
+model EmailChange {
+  token      String   @id @db.Char(21)
+  newEmail   String
+  userId     Int      @unique
+  user       User     @relation(fields: [userId], references: [id], onDelete: Cascade)
+  validUntil DateTime @default(dbgenerated("(timezone('utc'::text, now()) + '2 days'::interval)")) @db.Timestamp(6)
+
+  @@map("email-change")
+}
+
+model EmailVerification {
+  token      String   @id @db.Char(21)
+  userId     Int      @unique
+  user       User     @relation(fields: [userId], references: [id], onDelete: Cascade)
+  validUntil DateTime @default(dbgenerated("(timezone('utc'::text, now()) + '2 days'::interval)")) @db.Timestamp(6)
+
+  @@map("email-verification")
+}
+
+model PasswordReset {
+  token      String   @id @db.Char(21)
+  userId     Int      @unique
+  user       User     @relation(fields: [userId], references: [id], onDelete: Cascade)
+  validUntil DateTime @default(dbgenerated("(timezone('utc'::text, now()) + '2 days'::interval)")) @db.Timestamp(6)
+
+  @@map("password-reset")
+}
+
+model User {
+  id                Int                @id @default(autoincrement())
+  username          String             @unique
+  email             String             @unique
+  passwordHash      String
+  firstName         String
+  lastName          String
+  middleName        String?
+  image             String?
+  emailVerified     Boolean            @default(false)
+  birthDate         DateTime?          @db.Date
+  registrationDate  DateTime           @default(dbgenerated("timezone('UTC'::text, now())")) @db.Timestamp(6)
+  emailChange       EmailChange?
+  emailVerification EmailVerification?
+  passwordReset     PasswordReset?
+
+  @@map("user")
+}
+
+model Banner {
+  id        Int     @id @default(autoincrement())
+  title     String
+  imageUrl  String
+  linkUrl   String?
+  createdAt DateTime @default(now())
+  updatedAt DateTime @updatedAt
+
+  @@map("banner")
+}
+model Menu {
+  id        Int      @id @default(autoincrement())
+  name      String
+  url       String?
+  parentId Int?
+
+  @@map("menu")
+}
+model Company {
+  id        Int      @id @default(autoincrement())
+  name      String?
+  address   String?
+  city      String?
+  state     String?
+  zip       String?
+  phone     String?
+  email     String?
+  createdAt DateTime @default(now())
+
+  @@map("company")
+}
+
+model Product {
+  id          Int      @id @default(autoincrement())
+  name        String
+  description String?
+  price       Float?
+  image       String?
+  menuId      Int
+
+  @@map("product")
+}
+
+model News {
+  id          Int      @id @default(autoincrement())
+  title       String
+  content     String?
+  authorId   Int?
+  createdAt DateTime @default(now())
+  updatedAt DateTime? @updatedAt
+  menuId     Int
+
+  @@map("news")
+}
+
+
